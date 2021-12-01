@@ -4,21 +4,33 @@ Vzorčni repozitorij za projekt pri predmetu APPR v študijskem letu 2021/22.
 
 ## Analiza pričakovane življenjske dobe in števila zdravih let v evropskih državah
 
-V projektu bom analizirala pričakovano življensko dobo in število zdravih let po evropskih državah. Opazovala bom povezavo med pričakovano življesnko dobo, številom zdravih let, povprečno količino sadja in zelenjave, ki je na voljo na osebo, skupnimi izdatki za zdravstvo kot % BDP in stopnjo tveganja revšine.
+V projektu bom analizirala pričakovano življenjsko dobo ob rojstvu in število zdravih let v evropskih državah. Rada bi ugotovila povezavo pričakovane življenjske dobe in števila zdravih let s povprečno količino sadja in zelenjave, ki je na voljo na osebo, skupnimi izdatki države za zdravstvo kot % BDP in stopnjo tveganja revščine v državi.
 
 Viri podatkov:
 * [Eurostat](https://ec.europa.eu/eurostat/data/database)
 * [World health organization](https://gateway.euro.who.int/en/datasets/european-health-for-all-database/)
 
-Tabele:
-1. Pričakovana življenjska doba in število zdravih let  
-* Stolpci: država, leto, pričakovana življenska doba, število zdravih let
-2. Povprečna količina sadja in zelenjave, ki je na voljo na osebo  
-* Stolpci: država, leto, povprečna količina sadja in zelenjave, ki je na voljo na osebo
-3. Skupni izdatki za zdravstvo kot % BDP
-* Stolpci: država, leto, skupni izdatki za zdravstvo kot % BDP
-4. Stopnja tveganja revščine
-* Stolpci: država, leto, stopnja tveganja revščine
+### Tabele:
+Tabela 1: Pričakovana življenjska doba in število zdravih let  
+* Država
+* Leto
+* Pričakovana življenska doba
+* Število zdravih let
+
+Tabela 2: Povprečna količina sadja in zelenjave, ki je na voljo na osebo  
+* Država
+* Leto
+* Povprečna količina sadja in zelenjave, ki je na voljo na osebo(kg)
+
+Tabela 3: Skupni izdatki za zdravstvo kot % BDP
+* Država
+* Leto
+* Skupni izdatki za zdravstvo kot % BDP
+
+Tabela 4: Stopnja tveganja revščine
+* Država
+* Leto
+* Stopnja tveganja revščine
 
 ## Program
 
