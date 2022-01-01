@@ -16,16 +16,16 @@ library(rvest)
 leta.zivljenja.po.spolu <- read_csv("podatki/hlth_hlye_1_Data.csv",
                                     na = c("-"),
                                     locale = locale(encoding = "Windows-1250")) %>%
-  select(TIME, GEO, SEX, INDIC_HE, Value) %>% 
+  dplyr::select(TIME, GEO, SEX, INDIC_HE, Value) %>% 
   mutate(Value = parse_number(Value)) %>%
   pivot_wider(names_from = INDIC_HE, values_from = Value) %>%
   rename(leto = TIME, drzava = GEO, spol = SEX,
          pricakovana.starost = "Life expectancy in absolute value at birth",
-         zdrava.leta ="Healthy life years in absolute value at birth")
-  #%>%
-  #filter( leta.zivljenja.po.spolu$drzava == "European Union \\- (.*)")
+         zdrava.leta ="Healthy life years in absolute value at birth")%>%
+  filter(drzava != "European Union - 27 countries (from 2020)")%>%
+  filter(drzava != "European Union - 28 countries (2013-2020)")
 
-
+leta.zivljenja.po.spolu$drzava[leta.zivljenja.po.spolu$drzava == "Czechia"] <- "Czech Republic"
 leta.zivljenja.po.spolu$drzava <- str_replace_all(leta.zivljenja.po.spolu$drzava, "Germany \\(until 1990 former territory of the FRG\\)","Germany")
 leta.zivljenja.po.spolu$odstotek.zdravih.od.pricakovanih <- round((leta.zivljenja.po.spolu$zdrava.leta / leta.zivljenja.po.spolu$pricakovana.starost) * 100, 1)
 
@@ -50,9 +50,8 @@ link <- "https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/D_Country%2
 stran <- html_session(link) %>% read_html()
 oznake.drzav <- stran %>% html_nodes(xpath = "//table") %>% .[[1]] %>% html_table(dec = ",")%>%
   rename(drzava = "Standard Country Name", kratica = "ISO alpha-3 code")%>%
-  select(drzava, kratica)
-
-oznake.drzav$drzava[oznake.drzav$drzava == "Czech Republic"] <- "Czechia"
+  dplyr::select(drzava, kratica)
+#oznake.drzav$drzava[oznake.drzav$drzava == "Czech Republic"] <- "Czechia"
 oznake.drzav$drzava[oznake.drzav$drzava == "Republic of North Macedonia"] <- "North Macedonia"
 oznake.drzav$drzava[oznake.drzav$drzava == "Moldova, Republic of"] <- "Republic of Moldova"
 
@@ -66,10 +65,10 @@ sadje.in.zelenjava <- read_csv("podatki/HFA_446_EN.csv",
                                na = "-",
                                locale = locale(encoding = "Windows-1250"))%>% 
   filter(COUNTRY != "", YEAR > 2003) %>%
-  select(COUNTRY,YEAR, VALUE)%>%
+  dplyr::select(COUNTRY,YEAR, VALUE)%>%
   rename(kratica = COUNTRY, leto = YEAR, kg.na.osebo = VALUE)%>%
   left_join(oznake.drzav)%>%
-  select(leto, drzava, kg.na.osebo)
+  dplyr::select(leto, drzava, kg.na.osebo)
 
 #-------------------------------------------------------------------------------
 
@@ -79,10 +78,10 @@ izdatki.za.zdravstvo <- read_csv("podatki/HFA_566_EN.csv",
                                  na = "-",
                                  locale = locale(encoding = "Windows-1250"))%>%
   filter(COUNTRY != "", YEAR > 2003) %>%
-  select(COUNTRY, YEAR, VALUE)%>%
+  dplyr::select(COUNTRY, YEAR, VALUE)%>%
   rename(kratica = COUNTRY, leto = YEAR, odstotek.BDP.ki.gre.v.zdravstvo =VALUE)%>%
   left_join(oznake.drzav)%>%
-  select(leto, drzava, odstotek.BDP.ki.gre.v.zdravstvo)
+  dplyr::select(leto, drzava, odstotek.BDP.ki.gre.v.zdravstvo)
   
 #-------------------------------------------------------------------------------
 
@@ -90,12 +89,12 @@ izdatki.za.zdravstvo <- read_csv("podatki/HFA_566_EN.csv",
 tveganje.revscine.po.spolu <- read_csv("podatki/ilc_li02_1_Data.csv",
                                        na = "-",
                                        locale = locale(encoding = "Windows-1250")) %>%
-  select(TIME, GEO, SEX, Value)%>%
+  dplyr::select(TIME, GEO, SEX, Value)%>%
   mutate(Value = parse_number(Value))%>%
   rename(leto = TIME, drzava = GEO, spol = SEX, tveganje.revscine = Value)
 
 tveganje.revscine.po.spolu$drzava <- str_replace_all(tveganje.revscine.po.spolu$drzava, "([A-Za-z]{3,}) \\(.*", "\\1")
-
+tveganje.revscine.po.spolu$drzava[tveganje.revscine.po.spolu$drzava == "Czechia"] <- "Czech Republic"
 
 #-------------------------------------------------------------------------------
 
