@@ -8,9 +8,10 @@ library(rgdal)
 library(raster)
 library(rgeos)
 library(tidyverse)
-library(mapproj)
-library(mosaic)
-library(maptools)
+library(tmap)
+#library(mapproj)
+#library(mosaic)
+#library(maptools)
 
 #zivljenje <- read_csv("podatki/zivljenje.csv")
 #zivljenje.po.spolu <- read_csv("podatki/zivljenje-po-spolu.csv")
@@ -152,5 +153,41 @@ zivljenje.po.spolu%>% filter(leto == "2018") %>% ggplot(mapping = aes(x = spol, 
 
 #-------------------------------------------------------------------------------
 #Zemljevidi
+
+data("World")
+zivljenje1 <- zivljenje
+zivljenje1$drzava[zivljenje1$drzava == "Czech Republic"] <- "Czech Rep."
+
+pricakovana.starost.graf <- function(){
+  evropa <- World %>% filter (continent == 'Europe')
+  starost <- zivljenje1 %>% filter (leto == 2018) %>% dplyr::select('drzava', 'pricakovana.starost')
+  podatki <- merge(y = starost,x = evropa, by.x='name', by.y = 'drzava')
+  evropa <- tm_shape(podatki) + tm_polygons('pricakovana.starost')
+  tmap_mode('view')
+  return(evropa)
+}
+pricakovana.starost.graf()
+
+
+
+zdrava.leta.graf <- function(){
+  evropa <- World %>% filter (continent == 'Europe')
+  starost <- zivljenje1 %>% filter (leto == 2018) %>% dplyr::select('drzava', 'zdrava.leta')
+  podatki <- merge(y = starost,x = evropa, by.x='name', by.y = 'drzava')
+  evropa <- tm_shape(podatki) + tm_polygons('zdrava.leta')
+  tmap_mode('view')
+  return(evropa)
+}
+zdrava.leta.graf()
+
+
+zdrava.leta.graf <- function(){
+  evropa <- World %>% filter (continent == 'Europe')
+  starost <- zivljenje1 %>% filter (leto == 2018) %>% dplyr::select('drzava', 'zdrava.leta')
+  podatki <- merge(y = starost,x = evropa, by.x='name', by.y = 'drzava')
+  evropa <- tm_shape(podatki) + tm_polygons('zdrava.leta') 
+  tmap_mode('view')
+  return(evropa)
+}
 
 
