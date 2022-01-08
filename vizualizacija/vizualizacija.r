@@ -9,266 +9,148 @@ library(raster)
 library(rgeos)
 library(tidyverse)
 library(mapproj)
+library(mosaic)
+library(maptools)
 
-zivljenje <- read_csv("podatki/zivljenje.csv")
-zivljenje.po.spolu <- read_csv("podatki/zivljenje-po-spolu.csv")
+#zivljenje <- read_csv("podatki/zivljenje.csv")
+#zivljenje.po.spolu <- read_csv("podatki/zivljenje-po-spolu.csv")
 
 
+#-------------------------------------------------------------------------------
+#GRAFI
 
+#spol:
 
-################################################################################
-# grafi
+zdruzitev <- zivljenje.po.spolu %>% 
+  dplyr::select(drzava, leto,spol, pricakovana.starost, zdrava.leta) %>%
+  pivot_longer(cols = c(pricakovana.starost, zdrava.leta),
+               names_to = "ID", 
+               values_to = "leta")
+zdruzitev$zdruzeno <- paste(zdruzitev$ID, zdruzitev$spol, sep = "-")
+
 
 # skupaj pricakovana starost in zdrava leta
-ggplot(zivljenje.po.spolu) +
-  geom_line(aes(x = leto, y = pricakovana.starost, color = spol)) + 
-  geom_line(aes(x = leto, y = zdrava.leta, color = spol))+
+leta.po.drzavah.graf <- ggplot(zdruzitev) +
+  geom_line(aes(x = leto, y = leta, color = zdruzeno)) + 
+  scale_color_manual("",
+                     values = c("red", "blue", "#F8766D", "#00BFC4"),
+                     labels = c("ženske - pričakovana starost",
+                                "moški - pričakovana starost",
+                                "ženske - zdrava leta",
+                                "moški - zdrava leta") )+
   facet_wrap(.~drzava)+
-  ylab("pričakovana starost ob rojstvu in število zdravih let")
+  labs(
+    x = "Leto",
+    y = "Pričakovana starost ob rojstvu in število zdravih let",
+    title = "Evropa"
+  )
+
+leta.po.drzavah.graf
 
 
 # odstotek po spolu;
-ggplot(zivljenje.po.spolu) +
+odstotek.po.drzavah.graf <- ggplot(zivljenje.po.spolu) +
   aes(x = leto, y = odstotek.zdravih.od.pricakovanih, color = spol)+
   geom_line()+
   facet_wrap(.~drzava)+ 
-  ggtitle("Odstotek zdravih let življenja od pričakovane starosti")+
-  ylab("Odstotek zdravih let življenja od pričakovane starosti")
-  
-#zdrava leta in pričakovana starost splošno:
-ggplot(zivljenje) +
-  geom_line(aes(x = leto, y = pricakovana.starost), color = "red")+
-  geom_line(aes(x = leto, y = zdrava.leta), color = "blue")+
-  facet_wrap(.~drzava)
+  ggtitle("Evropa")+
+  ylab("Odstotek zdravih let življenja od pričakovane starosti")+
+  scale_color_manual("Spol",
+                     values = c("#F8766D", "#00BFC4"),
+                     labels = c("ženske", "moški"))
 
-ggplot(zivljenje) +
-  aes(x = leto, y = pricakovana.starost)
+odstotek.po.drzavah.graf
+
+# samo pričakovana starost in zdrava leta, po državah oz. letih
+
+pricakovana.2018.graf <- zivljenje %>%filter(leto == "2018")%>%
+  ggplot()+
+  geom_bar(mapping = aes(x = reorder(drzava, -pricakovana.starost),
+                               y = pricakovana.starost),
+                 stat = "identity")+
+  ylab("Pričakovana starost ob rojstvu")+
+  xlab("Država")+
+  theme_classic()+
+  theme(
+    axis.text.x = element_text(angle = 50, vjust = 0.5),
+    axis.title.x = element_text(vjust = 0))+
+  ggtitle("Pričakovana starost po državah leta 2018")+
+  geom_hline(yintercept=mean(filter(zivljenje, leto == "2018")$pricakovana.starost),color="red")
+
+pricakovana.2018.graf
+  
+#pricakovana.2018.graf %>% ggsave("slike/pricakovana-2018.pdf" , dev = cairo_pdf, width = 9, height = 6)
+
+
+zivljenje %>% ggplot(mapping = aes(x = as.character(leto), y = zdrava.leta))+ 
+  geom_boxplot()+
+  labs(
+    x = "leto",
+    y = "zdrava leta"
+  )
+
+zivljenje %>% ggplot(mapping = aes(x = as.character(leto), y = pricakovana.starost))+
+  geom_boxplot()+
+  labs(
+    x = "leto",
+    y = "pričakovana starost"
+  )
+
+
+# pricakovana leta in BDP, sadje in zelenjava, revscina
+
+
+pricakovana.in.BDP.graf <- zivljenje %>%filter(odstotek.BDP.ki.gre.v.zdravstvo != "NA")%>%
+  ggplot() +
+  aes(x = odstotek.BDP.ki.gre.v.zdravstvo, y = pricakovana.starost, color = zdrava.leta) +
+  geom_point()+
+  labs(
+    x ="% BDP, ki ga država nameni v zdravstvo",
+    y = "Pričakovana starost",
+    title = "Pričakovana starost v odvisnosti od % BDP namenjenega v zdravstvo",
+    color = "Zdrava leta"
+  )+
+  scale_color_gradient(low = "black", high = "green")
+pricakovana.in.BDP.graf
+
+
+pricakovana.in.sadje.graf <- ggplot(zivljenje %>% filter(kg.na.osebo != "NA"))+
+  aes(x = kg.na.osebo, y = pricakovana.starost, color = zdrava.leta) +
+  geom_point()+
+  labs(
+    x = "sadje in zelenjava, ki je na voljo na eno osebo v enem letu, v kg",
+    y = "pričakovana starost",
+    color = "zdrava leta"
+  )+ scale_color_gradient(low = "black", high = "green")
+
+pricakovana.in.sadje.graf
+
+
+
+pricakovana.in.revscina.graf <- ggplot(zivljenje %>% filter(tveganje.revscine != "NA")) +
+  aes(x = tveganje.revscine, y = pricakovana.starost, color = zdrava.leta)+
+  geom_point()+
+  labs(
+    x = "tveganje revščine",
+    y = "pričakovana starost"
+  )
+
+pricakovana.in.revscina.graf
+
+
+
+#dodatni grafi
+# pricakovana leta po državah čez leta
+ggplot(zivljenje) + aes(x = leto, y= pricakovana.starost, color = drzava) + geom_line() 
+
+
+zivljenje.po.spolu%>% filter(leto == "2018") %>% ggplot(mapping = aes(x = spol, y = pricakovana.starost)) + geom_boxplot()
+zivljenje.po.spolu%>% filter(leto == "2018") %>% ggplot(mapping = aes(x = spol, y = odstotek.zdravih.od.pricakovanih)) + geom_boxplot()
 
 
 
 
 #-------------------------------------------------------------------------------
 #Zemljevidi
-
-svet.sp = readOGR("podatki/zemljevidi/TM_WORLD_BORDERS-0.3.shp", "TM_WORLD_BORDERS-0.3")
-svet.sp = gBuffer(svet.sp, byid = TRUE, width = 0)
-svet.map = svet.sp %>% spTransform(CRS("+proj=longlat +datum=WGS84"))
-
-svet = tibble(svet.map@data)
-
-svet.poligoni = svet.map %>% fortify() %>%
-  left_join(
-    rownames_to_column(svet.map@data),
-    by = c("id" = "rowname")
-  ) %>%
-  dplyr::select(
-    drzava = NAME, long, lat, order, hole, piece, id, group
-  ) %>%
-  mutate(
-    drzava = replace(
-      drzava,
-      drzava == "The former Yugoslav Republic of Macedonia",
-      "North Macedonia"
-    )
-  )
-
-svet.poligoni %>% write_csv("podatki/drzave-poligoni.csv")
-
-svet.centroidi = svet.map %>% coordinates() %>% as.data.frame()
-colnames(svet.centroidi) = c("long", "lat")
-
-svet.centroidi = rownames_to_column(svet.centroidi) %>%
-  left_join(
-    rownames_to_column(svet.map@data),
-    by = "rowname"
-  ) %>%
-  dplyr::select(
-    drzava = NAME, long = LON, lat = LAT
-  ) %>%
-  mutate(
-    drzava = replace(
-      drzava,
-      drzava == "The former Yugoslav Republic of Macedonia",
-      "North Macedonia"
-    )
-  )
-svet.centroidi %>% write_csv("podatki/drzave-centroidi.csv")
-
-
-evropske.drzave = tibble(
-  drzava = c(
-    "Albania", "Andorra", "Armenia",
-    "Austria", "Azerbaijan", "Belarus",
-    "Belgium", "Bosnia and Herzegovina",
-    "Bulgaria", "Croatia", "Cyprus",
-    "Czech Republic", "Denmark", "Estonia",
-    "Finland", "France", "Georgia",
-    "Germany", "Greece", "Hungary",
-    "Iceland", "Ireland", "Italy",
-    "Kazakhstan", "Latvia",
-    "Liechtenstein", "Lithuania",
-    "Luxembourg", "Malta", "Moldova",
-    "Monaco", "Montenegro",
-    "Netherlands", "North Macedonia",
-    "Norway", "Poland", "Portugal",
-    "Romania", "Russia", "San Marino",
-    "Serbia", "Slovakia", "Slovenia",
-    "Spain", "Sweden", "Switzerland",
-    "Turkey", "Ukraine", "United Kingdom",
-    "Holy See (Vatican City)"
-  )
-)
-
-evropa.izsek = as(extent(-25, 60, 30, 75), "SpatialPolygons")
-sp::proj4string(evropa.izsek) <- sp::proj4string(svet.sp)
-
-evropa.poligoni = svet.sp %>% crop(evropa.izsek) %>% fortify() %>%
-  left_join(
-    rownames_to_column(svet.map@data),
-    by = c("id" = "rowname")
-  ) %>%
-  dplyr::select(
-    drzava = NAME, long, lat, order, hole, piece, id, group
-  ) %>%
-  mutate(
-    drzava = replace(
-      drzava,
-      drzava == "The former Yugoslav Republic of Macedonia",
-      "North Macedonia"
-    )
-  ) %>%
-  left_join(
-    evropske.drzave,
-    by = "drzava"
-  )
-
-evropa.centroidi = evropske.drzave %>%
-  left_join(
-    svet.centroidi,
-    by = "drzava"
-  )
-
-evropa.poligoni %>%
-  ggplot() +
-  geom_polygon(
-    mapping = aes(long, lat, group = group),
-    color = "grey",
-    fill = "white"
-  ) +
-  coord_map() +
-  geom_text(
-    data = evropa.centroidi,
-    mapping = aes(x = long, y = lat, label = drzava),
-    size = 1.5
-  ) +
-  xlim(-25, 60) +
-  ylim(30, 75) +
-  theme_classic() +
-  theme(
-    axis.line = element_blank(),
-    axis.ticks = element_blank(),
-    axis.text = element_blank(),
-    axis.title = element_blank()
-  )
-
-
-
-
-
-#zemljevidi za leto 2018, saj je zadnje leto s celostnimi podatki
-
-pricakovana.starost.map <- zivljenje %>% 
-  filter(leto == "2018")%>%
-  dplyr::select(drzava, pricakovana.starost)%>%
-  full_join(evropa.poligoni, by = "drzava") %>%
-  ggplot() +
-  geom_polygon(
-    mapping = aes(long, lat, group = group, fill = pricakovana.starost ),
-    color = "grey",
-  ) +
-  coord_map() +
-  geom_text(
-    data = evropa.centroidi,
-    mapping = aes(x = long, y = lat, label = drzava),
-    size = 1.5
-  ) +
-  xlim(-25, 60) +
-  ylim(30, 72) +
-  theme_classic() +
-  theme(
-    axis.line = element_blank(),
-    axis.ticks = element_blank(),
-    axis.text = element_blank(),
-    axis.title = element_blank()
-  )+
-  ggtitle("Pričakovana starost ob rojstvu v Evropi, leto 2018")+
-  labs(fill="Pričakovana starost")+
-  ggsave("slike/pricakovana-starost-map.pdf", dev = cairo_pdf, width = 9, height = 6)
-  
-
-
-
-zdrava.leta.map <- zivljenje %>% 
-  filter(leto == "2018")%>%
-  dplyr::select(drzava, zdrava.leta)%>%
-  full_join(evropa.poligoni, by = "drzava") %>%
-  ggplot() +
-  geom_polygon(
-    mapping = aes(long, lat, group = group, fill = zdrava.leta ),
-    color = "grey",
-  ) +
-  coord_map() +
-  geom_text(
-    data = evropa.centroidi,
-    mapping = aes(x = long, y = lat, label = drzava),
-    size = 1.5
-  ) +
-  xlim(-25, 60) +
-  ylim(30, 72) +
-  theme_classic() +
-  theme(
-    axis.line = element_blank(),
-    axis.ticks = element_blank(),
-    axis.text = element_blank(),
-    axis.title = element_blank()
-  )+
-  ggtitle("Zdrava leta v Evropi, leto 2018")+
-  labs(fill="Zdrava leta")+
-  ggsave("slike/zdrava-leta-map.pdf", dev = cairo_pdf, width = 9, height = 6)
-
-
-
-
-
-odstotek.zdravih.map <- zivljenje %>% 
-  filter(leto == "2018")%>%
-  dplyr::select(drzava, odstotek.zdravih.od.pricakovanih)%>%
-  full_join(evropa.poligoni, by = "drzava") %>%
-  ggplot() +
-  geom_polygon(
-    mapping = aes(long, lat, group = group, fill = odstotek.zdravih.od.pricakovanih ),
-    color = "grey"
-  ) +
-  coord_map() +
-  geom_text(
-    data = evropa.centroidi,
-    mapping = aes(x = long, y = lat, label = drzava),
-    size = 1.5
-  ) +
-  xlim(-25, 60) +
-  ylim(30, 72) +
-  theme_classic() +
-  theme(
-    axis.line = element_blank(),
-    axis.ticks = element_blank(),
-    axis.text = element_blank(),
-    axis.title = element_blank()
-  )+
-  ggtitle("Odstotek zdravih let od pričakovane starosti, leto 2018")+
-  labs(fill="Odstotek")+
-  ggsave("slike/odstotek-zdravih-od-pricakovanih-map.pdf", dev = cairo_pdf, width = 9, height = 6)
-
-
-
 
 
