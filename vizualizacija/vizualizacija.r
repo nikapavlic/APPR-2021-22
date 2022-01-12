@@ -1,17 +1,5 @@
 # 3. faza: Vizualizacija podatkov
 
-library(ggplot2)
-library(dplyr)
-
-library(sp)
-library(rgdal)
-library(raster)
-library(rgeos)
-library(tidyverse)
-library(tmap)
-#library(mapproj)
-#library(mosaic)
-#library(maptools)
 
 #zivljenje <- read_csv("podatki/zivljenje.csv")
 #zivljenje.po.spolu <- read_csv("podatki/zivljenje-po-spolu.csv")
@@ -101,7 +89,7 @@ zivljenje %>% ggplot(mapping = aes(x = as.character(leto), y = pricakovana.staro
 # pricakovana leta in BDP, sadje in zelenjava, revscina
 
 
-pricakovana.in.BDP.graf <- zivljenje %>%filter(odstotek.BDP.ki.gre.v.zdravstvo != "NA")%>%
+pricakovana.in.BDP.graf <- zivljenje %>%filter(odstotek.BDP.ki.gre.v.zdravstvo != "NA")%>% #filter(leto == "2011") %>%
   ggplot() +
   aes(x = odstotek.BDP.ki.gre.v.zdravstvo, y = pricakovana.starost, color = zdrava.leta) +
   geom_point()+
@@ -158,19 +146,20 @@ data("World")
 zivljenje1 <- zivljenje
 zivljenje1$drzava[zivljenje1$drzava == "Czech Republic"] <- "Czech Rep."
 
-pricakovana.starost.graf <- function(){
+pricakovana.starost.map <- function(){
   evropa <- World %>% filter (continent == 'Europe')
   starost <- zivljenje1 %>% filter (leto == 2018) %>% dplyr::select('drzava', 'pricakovana.starost')
   podatki <- merge(y = starost,x = evropa, by.x='name', by.y = 'drzava')
-  evropa <- tm_shape(podatki) + tm_polygons('pricakovana.starost')
+  evropa <- tm_shape(podatki) + tm_polygons('pricakovana.starost', popup.vars = c("Pričakovana starost: " = "pricakovana.starost"))
   tmap_mode('view')
   return(evropa)
 }
-pricakovana.starost.graf()
+pricakovana.starost.map()
 
 
 
-zdrava.leta.graf <- function(){
+
+zdrava.leta.map <- function(){
   evropa <- World %>% filter (continent == 'Europe')
   starost <- zivljenje1 %>% filter (leto == 2018) %>% dplyr::select('drzava', 'zdrava.leta')
   podatki <- merge(y = starost,x = evropa, by.x='name', by.y = 'drzava')
@@ -178,16 +167,18 @@ zdrava.leta.graf <- function(){
   tmap_mode('view')
   return(evropa)
 }
-zdrava.leta.graf()
+zdrava.leta.map()
 
 
-zdrava.leta.graf <- function(){
+odstotek.map <- function(){
   evropa <- World %>% filter (continent == 'Europe')
-  starost <- zivljenje1 %>% filter (leto == 2018) %>% dplyr::select('drzava', 'zdrava.leta')
+  starost <- zivljenje1 %>% filter (leto == 2018) %>% dplyr::select('drzava', 'odstotek.zdravih.od.pricakovanih')
   podatki <- merge(y = starost,x = evropa, by.x='name', by.y = 'drzava')
-  evropa <- tm_shape(podatki) + tm_polygons('zdrava.leta') 
+  evropa <- tm_shape(podatki) + tm_polygons('odstotek.zdravih.od.pricakovanih') 
   tmap_mode('view')
   return(evropa)
 }
+
+odstotek.map()
 
 

@@ -1,15 +1,7 @@
 # 2. faza: Uvoz podatkov
 
+
 sl <- locale("sl", decimal_mark=",", grouping_mark=".")
-
-library(readr)
-library(tibble)
-library(readxl)
-library(dplyr)
-library(stringr)
-library(tidyr)
-library(rvest)
-
 
 #tabela s pričakovanimi leti življenja in zdravih let
 
