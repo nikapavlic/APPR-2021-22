@@ -26,7 +26,7 @@ library(maptools)
 
 # analiza
 library(GGally)
-
+library(ranger)
 
 options(gsubfn.engine="R")
 
