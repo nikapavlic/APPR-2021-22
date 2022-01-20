@@ -1,6 +1,6 @@
 ---
-title: "Poročilo pri predmetu Analiza podatkov s programom R"
-author: "Študent FMF"
+title: "Analiza pričakovane življenjske dobe ob rojstvu in števila zdravih let v Evropi"
+author: "Nika Pavlič"
 output:
   html_document: default
   pdf_document:
@@ -20,6 +20,8 @@ source("lib/libraries.r", encoding="UTF-8")
 
 ## Izbira teme
 
+V projektu bom analizirala pričakovano življenjsko dobo ob rojstvu in število zdravih let v evropskih državah. Te bom primerjala s spolom, povprečno količino sadja in zelenjave, ki je na voljo na osebo, skupnimi izdatki države za zdravstvo kot odstotek BDP in stopnjo tveganja revščine v državi, ter poskušala ugotoviti, če je med njimi kakšna povezava.
+
 ***
 
 ## Obdelava, uvoz in čiščenje podatkov
@@ -28,6 +30,29 @@ source("lib/libraries.r", encoding="UTF-8")
 source("uvoz/uvoz.r", encoding="UTF-8")
 ```
 
+Podatke za [pričakovano življenjsko dobo in zdrava leta](https://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=hlth_hlye&lang=en) ter [tveganje revščine](https://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=ilc_li02&lang=en) sem pridobila iz Eurostata. Iz baze podatkov World Health Organization pa sem črpala podatke [koliko sadja in zelenjave je na voljo na eno osebo v kilogramih](https://gateway.euro.who.int/en/indicators/hfa_446-3240-average-amount-of-fruits-and-vegetables-available-per-person-per-year-kg/) in [koliko odstotkov BDP država nameni v zdravstvo](https://gateway.euro.who.int/en/indicators/hfa_566-6711-total-health-expenditure-as-of-gdp/). Vse te podatke sem pridobila v obliki CSS. Iz spletne strani [Knowledge Center - zuora](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/D_Country%2C_State%2C_and_Province_Codes/A_Country_Names_and_Their_ISO_Codes) sem pridobila tabelo v HTML obliki z imeni držav in ISO alpha-3 kraticami, da sem tabele lažje povezala. Tabele sem prečistila in podatke združila v dve končni tabeli.
+
+1. `zivljenje.po.spolu` - podatki z dimenzijo spola
+  - `leto` (2004--2019)
+  - `drzava`
+  - `spol`
+  - `zdrava.leta` - število zdravih let
+  - `pricakovana.starost` - pričakovana življenjska doba ob rojstvu
+  - `odstotek.zdravih.od.pricakovanih` - odstotek zdravih let od pričakovane življenjske dobe
+  - `tveganje.revscine` - stopnja tveganja revščine (mejna točka: 60 % mediane ekvivalentnega dohodka po socialnih transferjih)
+
+
+2. `zivljenje` - podatki, z vsemi opazovanimi spremenjljivkami, ki pa niso ločeni po spolu
+  - `leto` (2004--2019)
+  - `drzava`
+  - `pricakovana.starost` - pričakovana življenjska doba ob rojstvu
+  - `zdrava.leta` - število zdravih let
+  - `odstotek.zdravih.od.pricakovanih` - odstotek zdravih let od pričakovane življenjske dobe
+  - `kg.na.osebo` - koliko kilogramov sadja in zelenjave je na voljo na eno osebo v enem letu
+  - `odstotek.BDP.ki.gre.v.zdravstvo` - kakšen odstotek BDP država nameni v zdravstvo
+  - `tveganje.revscine` - stopnja tveganja revščine (mejna točka: 60 % mediane ekvivalentnega dohodka po socialnih transferjih)
+ 
+ 
 ***
 
 ## Analiza in vizualizacija podatkov
@@ -35,16 +60,75 @@ source("uvoz/uvoz.r", encoding="UTF-8")
 ```{r vizualizacija, results='hide'}
 source("vizualizacija/vizualizacija.r", encoding="UTF-8")
 ```
+```{r leta.po.drzavah.graf, echo=FALSE, fig.align='center'}
+leta.po.drzavah.graf
+```
+Prvi graf prikazuje gibanje pričakovane življenjske dobe in števila zdravih let v evropskih državah med leti 2004 in 2019, ločeno po spolu. V vseh evropskih državah je vidno naraščanje pričakovane življenjske dobe pri obeh spolih, medtem ko število zdravih let bolj niha. Pričakovana življenjska doba je v vseh državah opazno višja pri ženskah, medtem ko je razlika zdravih let med spoloma manj opazna, zdrava leta moških pa ponekod presegajo zdrava leta žensk.
+
+```{r odstotek.po.spolu.graf, echo=FALSE, fig.align='center'}
+odstotek.po.spolu.graf
+```
+Drugi graf prikazuje odstotek zdravih let od pričakovane življenjske dobe za leto 2018. Že iz prvega grafa lahko sklepamo, da je odstotek zdravih let od pričakovane življenjske dobe višji pri moških, kar pokaže tudi ta graf.
+
+
+```{r pricakovana.2018.graf, echo=FALSE, fig.align='center'}
+pricakovana.2018.graf
+```
+Tretji graf prikazuje pričakovano življenjsko dobo evropskih držav za leto 2018. Iz grafa lahko preberemo kako si države sledijo po pričakovani življenjski dobi in jih primerjamo s povprečjem.
+
+```{r pricakovana.in.BDP.graf, echo=FALSE, fig.align='center'}
+pricakovana.in.BDP.graf
+```
+Četrti graf prikazuje prikazuje odstotek BDP, ki ga država nameni v zdravstvo in pričakovano življenjsko dobo za leto 2011. Vidimo, da pričakovana življenjska doba narašča z odstotkom BDP namenjenega v zdravstvo, zato lahko sklepamo na nekolikšno povezavo med obema spremenljivkama. Točke so obarvane glede na število zdravih let. Bolj rdeče točke se nahajo tam kjer je višji odstotek BDP namenjen v zdravstvo.
+
+
+```{r pricakovana.in.sadje.graf, echo=FALSE, fig.align='center'}
+pricakovana.in.sadje.graf
+```
+Peti graf prikazuje pričakovano življenjsko dobo in količino sadja in zelenjave, ki je v enem letu na voljo na eno osebo v letu 2011. Točke pa so obarvane glede na število zdravih let. Ponovno je vidno naraščanje pričakovane starosti vendar so točke bolj razpršene, kot v prejšnjem grafu. Točke ki so bližje rdeči, so tu razpršene čez večji del x-osi, zato sklepam na nepovezanost zdravih let in količine sadje in zelenjave.
+
+
+
+```{r pricakovana.in.revscina.graf, echo=FALSE, fig.align='center'}
+pricakovana.in.revscina.graf
+```
+Zadnji graf prikazuje pričakovano življenjsko dobo in tveganje revščine v letu 2011, točke pa so obarvane glede na število zdravih let. Točke so v grafu zelo razpršene zato sklepam na nepovezanost pričakovane življenjske dobe in tveganja revščine. 
+Tudi obarvanje točk ne kaže na povezavo med številom zdravih let in tveganjem revščine.
+
+### Zemljevida pričakovane življenjske dobe in števila zdravih let za leto 2018
+
+```{r map(), echo=FALSE, fig.align='center'}
+map()
+```
+
+Levi zemljevid prikazuje pričakovano življenjsko dobo v evropskih državah za leto 2018. Opazimo, da se pričakovana življenjska doba zmanjšuje s pomikanjem proti vzhodu Evrope. V desnem zemljevidu pa je prikazano število zdravih let za isto leto. V primerjavi z zemljevidom pričakovane življenjske dobe tu ne opazimo geografske povezanosti. Iz teh dveh zemljevidov lahko sklepamo, da visoka pričakovana življenjska doba ne pomeni tudi, da je število zdravih let visoko.
 
 ***
 
 ## Napredna analiza podatkov
 
-```{r analiza}
+```{r analiza, echo=FALSE}
 source("analiza/analiza.r", encoding="UTF-8")
 ```
 
+```{r grupiranje.map, echo=FALSE, fig.align='center'}
+grupiranje.map
+```
+Za gručenje podatkov sem uporabila hierarhično razvrščanje v skupine. Uporabila sem podatke za leto 2011, saj so ti imeli najmanj manjkajočih podatkov. Pri razvrščanju v skupine sem upoštevala pričakovano življenjsko dobo, odstotek BDP, ki ga država nameni v zdravstvo, koliko sadja in zelenjave je na voljo na eno osebo ter tveganje revščine. Iz zemjevida vidimo, da so države, ki so v isti skupini večinoma tudi geografsko blizu. 
+
+
+
+```{r napoved.graf, echo=FALSE, fig.align='center'}
+napoved.graf
+```
+S pomočjo naključnih gozdov sem poskušala napovedati pričakovano življenjsko dobo v Sloveniji za leto 2020. Pri tem sem upoštevala le gibanje pričakovane življenjske dobe od leta 1985 pa do 2019. Tu sem uvozila nove podatke, iz baze podatkov [Svetovne zdravstvene organizacije](https://gateway.euro.who.int/en/indicators/hfa_43-1010-life-expectancy-at-birth-years/) ki so zajemali daljše časovno obdobje. Napoved kaže, da se je v letu 2020 pričakovana življenjska doba zmanjšala od predhodnega leta. Podatki iz različnih virov se nekoliko razlikujejo zato, bom lahko ugotovila kako točna je napoved šele, ko posodobijo vir teh podatkov.
+
+
 ***
+
+## Zaključek
+
+Od izbranih spremenljivk, katerih vpliv na pričakovano življenjsko dobo in število zdravih let sem želela ugotoviti, najbolj izstopa spol, za njim pa odstotek BDP, ki ga država nameni v zdravstvo. Pričakovana življenjska doba je nekoliko povezana tudi z geografsko lego države, kar pa ne drži za število zdravih let.  
 
 ```{r shiny}
 #shinyAppDir("shiny", options=list(width="100%", height=600))

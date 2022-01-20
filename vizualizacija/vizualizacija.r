@@ -42,7 +42,7 @@ odstotek.po.spolu.graf <- zivljenje.po.spolu%>% filter(leto == "2018") %>%
   geom_boxplot()+
   ylab("Odstotek zdravih let od pričakovane življenjske dobe")+
   xlab("Spol")+
-  ggtitle("Odstotek zdravih let življenja od pričakovane življenjske dobe glede na spol za leto 2018")+
+  ggtitle("Odstotek zdravih let življenja od pričakovane \nživljenjske dobe glede na spol za leto 2018")+
   scale_x_discrete(labels=c("Ženske","Moški"))
 
 odstotek.po.spolu.graf
@@ -104,8 +104,8 @@ pricakovana.in.revscina.graf <- ggplot(zivljenje %>% filter(!is.na(tveganje.revs
   aes(x = tveganje.revscine, y = pricakovana.starost, color = zdrava.leta)+
   geom_point()+
   labs(
-    x = "tveganje revščine",
-    y = "pričakovana življenjska doba",
+    x = "Tveganje revščine",
+    y = "Pričakovana življenjska doba",
     title = "Pričakovana življenjska doba ob rojstvu glede na tveganje revščine v letu 2011",
     color = "Zdrava leta"
   )+ scale_color_gradient(low = "blue", high = "red")

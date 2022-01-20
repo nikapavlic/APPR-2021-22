@@ -125,15 +125,15 @@ diagram.kolena(r)
 skupine = dendrogram %>% cutree(k = 4) %>% as.ordered()
 skupine
 
-#diagram.skupine(X.norm, colnames(X.norm), skupine, 2 )
+diagram.skupine(X.norm, colnames(X.norm), skupine, 2 )
 
 #drzave <- attributes(X.norm)$dimnames[[1]]  # dobimo imena, ki jih spremenimo potem v stolpce (to ni df)
-#drzave.x.y = as_tibble(X.norm %>% cmdscale(k = 4)) #%>% bind_cols(drzave) %>%
+#drzave.x.y = as_tibble(X.norm %>% cmdscale(k = 2)) #%>% bind_cols(drzave) %>%
 #  rename(drzava = ...3, x = V1, y = V2)
 
 
 # Narišemo države tako, da jih pobarvamo glede na pripadnost skupini
-#diagram.skupine(drzave.x.y, drzave.x.y$drzava, skupine, 4)
+#  diagram.skupine(drzave.x.y, drzave.x.y$drzava, skupine, 4)
 
 
 data("World")
@@ -193,3 +193,8 @@ napoved.graf <- ggplot(pricakovanje) + geom_line(mapping = aes(x = c.1985.2020.,
   )
 
 
+
+
+#### 
+#samo da ugotovim korelacijo:
+ggpairs(data.frame(X.norm))
