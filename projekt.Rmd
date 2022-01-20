@@ -76,6 +76,8 @@ pricakovana.2018.graf
 ```
 Tretji graf prikazuje pričakovano življenjsko dobo evropskih držav za leto 2018. Iz grafa lahko preberemo kako si države sledijo po pričakovani življenjski dobi in jih primerjamo s povprečjem.
 
+V naslednjih treh grafih sem uporabila podatke iz leta 2011, saj so ti imeli najmanj manjkajočih podatkov.
+
 ```{r pricakovana.in.BDP.graf, echo=FALSE, fig.align='center'}
 pricakovana.in.BDP.graf
 ```
